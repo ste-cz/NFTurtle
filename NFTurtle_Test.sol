@@ -1,4 +1,4 @@
-
+// See contracts deployed from https://ropsten.etherscan.io/address/0x5e21089c09054ea7b3a21299c7d7206b195e51d0
 // SPDX-License-Identifier: MIT
 
 pragma solidity =0.8.13;
@@ -17,7 +17,7 @@ pragma solidity =0.8.13;
  */
 abstract contract Context {
     function _msgSender() internal view virtual returns (address payable) {
-        return msg.sender;
+        return payable(msg.sender);
     }
 
     function _msgData() internal view virtual returns (bytes memory) {
@@ -292,7 +292,7 @@ abstract contract ERC165 is IERC165 {
      */
     mapping(bytes4 => bool) private _supportedInterfaces;
 
-    constructor () internal {
+    constructor ()  {
         // Derived contracts need only register support for their own interfaces,
         // we register support for ERC165 itself here
         _registerInterface(_INTERFACE_ID_ERC165);
@@ -327,21 +327,15 @@ abstract contract ERC165 is IERC165 {
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
 
-
-//pragma solidity >=0.6.0 <0.8.0;
+// CAUTION
+// This version of SafeMath should only be used with Solidity 0.8 or later,
+// because it relies on the compiler's built in overflow checks.
 
 /**
- * @dev Wrappers over Solidity's arithmetic operations with added overflow
- * checks.
+ * @dev Wrappers over Solidity's arithmetic operations.
  *
- * Arithmetic operations in Solidity wrap on overflow. This can easily result
- * in bugs, because programmers usually assume that an overflow raises an
- * error, which is the standard behavior in high level programming languages.
- * `SafeMath` restores this intuition by reverting the transaction when an
- * operation overflows.
- *
- * Using this library instead of the unchecked operations eliminates an entire
- * class of bugs, so it's recommended to use it always.
+ * NOTE: `SafeMath` is generally not needed starting with Solidity 0.8, since the compiler
+ * now has built in overflow checking.
  */
 library SafeMath {
     /**
@@ -350,19 +344,23 @@ library SafeMath {
      * _Available since v3.4._
      */
     function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        uint256 c = a + b;
-        if (c < a) return (false, 0);
-        return (true, c);
+        unchecked {
+            uint256 c = a + b;
+            if (c < a) return (false, 0);
+            return (true, c);
+        }
     }
 
     /**
-     * @dev Returns the substraction of two unsigned integers, with an overflow flag.
+     * @dev Returns the subtraction of two unsigned integers, with an overflow flag.
      *
      * _Available since v3.4._
      */
     function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        if (b > a) return (false, 0);
-        return (true, a - b);
+        unchecked {
+            if (b > a) return (false, 0);
+            return (true, a - b);
+        }
     }
 
     /**
@@ -371,13 +369,15 @@ library SafeMath {
      * _Available since v3.4._
      */
     function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
-        // benefit is lost if 'b' is also tested.
-        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
-        if (a == 0) return (true, 0);
-        uint256 c = a * b;
-        if (c / a != b) return (false, 0);
-        return (true, c);
+        unchecked {
+            // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+            // benefit is lost if 'b' is also tested.
+            // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+            if (a == 0) return (true, 0);
+            uint256 c = a * b;
+            if (c / a != b) return (false, 0);
+            return (true, c);
+        }
     }
 
     /**
@@ -386,8 +386,10 @@ library SafeMath {
      * _Available since v3.4._
      */
     function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        if (b == 0) return (false, 0);
-        return (true, a / b);
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a / b);
+        }
     }
 
     /**
@@ -396,8 +398,10 @@ library SafeMath {
      * _Available since v3.4._
      */
     function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        if (b == 0) return (false, 0);
-        return (true, a % b);
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a % b);
+        }
     }
 
     /**
@@ -411,9 +415,7 @@ library SafeMath {
      * - Addition cannot overflow.
      */
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 c = a + b;
-        require(c >= a, "SafeMath: addition overflow");
-        return c;
+        return a + b;
     }
 
     /**
@@ -427,7 +429,6 @@ library SafeMath {
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b <= a, "SafeMath: subtraction overflow");
         return a - b;
     }
 
@@ -442,26 +443,20 @@ library SafeMath {
      * - Multiplication cannot overflow.
      */
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a == 0) return 0;
-        uint256 c = a * b;
-        require(c / a == b, "SafeMath: multiplication overflow");
-        return c;
+        return a * b;
     }
 
     /**
      * @dev Returns the integer division of two unsigned integers, reverting on
      * division by zero. The result is rounded towards zero.
      *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
+     * Counterpart to Solidity's `/` operator.
      *
      * Requirements:
      *
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b > 0, "SafeMath: division by zero");
         return a / b;
     }
 
@@ -478,7 +473,6 @@ library SafeMath {
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b > 0, "SafeMath: modulo by zero");
         return a % b;
     }
 
@@ -495,17 +489,20 @@ library SafeMath {
      *
      * - Subtraction cannot overflow.
      */
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        require(b <= a, errorMessage);
-        return a - b;
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b <= a, errorMessage);
+            return a - b;
+        }
     }
 
     /**
      * @dev Returns the integer division of two unsigned integers, reverting with custom message on
      * division by zero. The result is rounded towards zero.
-     *
-     * CAUTION: This function is deprecated because it requires allocating memory for the error
-     * message unnecessarily. For custom revert reasons use {tryDiv}.
      *
      * Counterpart to Solidity's `/` operator. Note: this function uses a
      * `revert` opcode (which leaves remaining gas untouched) while Solidity
@@ -515,9 +512,15 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        require(b > 0, errorMessage);
-        return a / b;
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b > 0, errorMessage);
+            return a / b;
+        }
     }
 
     /**
@@ -535,9 +538,41 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b > 0, errorMessage);
+            return a % b;
+        }
+    }
+
+
+
+    /*
+    * @dev
+    *
+    * Returns a number's percentage of another number to a specified decimal place.
+    * Use case: Still coming up.
+    * 
+    *
+    * @param:
+    *
+    * uint256 a, uint256 b, uint8 c.
+    * It returns tha `a`% of `b` to `c` decimal places.
+    */
+    function perc(uint256 a, uint256 b, uint8 c, string memory errorMessage) internal pure returns(uint256)
+    {
+        // Require that b is greater than 0 to avoid zero division.
         require(b > 0, errorMessage);
-        return a % b;
+        // Check for overflows.
+        require((a * b * (10 ** c)) < type(uint256).max, errorMessage);
+        // Evaluate calculations to c decimal places.
+        uint perc_val = (a * b * (10 ** c)) / 100;
+        // Return answer.
+        return perc_val;
     }
 }
 
@@ -1432,7 +1467,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable 
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    constructor (string memory name_, string memory symbol_) public {
+    constructor (string memory name_, string memory symbol_)  {
         _name = name_;
         _symbol = symbol_;
 
@@ -1845,7 +1880,7 @@ abstract contract Ownable is Context {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor () internal {
+    constructor ()  {
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
@@ -2167,35 +2202,35 @@ contract NFTurtle is ERC721, Ownable {
 	// Original photo can be assigned later.
     function setNFTurtleOrigPhoto(uint256 id, string memory newLink) external onlyOwner   {
         NFTurtleOrigPhoto[id]=newLink;
-		require(tokenIDFromURI[newLink]==0,"This URI already has existing NFTurtle linked") // check if not used previously
-		TokenIDFromURI[newLink]=id;
+		require(tokenIDFromURI[newLink]==0,"This URI already has existing NFTurtle linked"); // check if not used previously
+		tokenIDFromURI[newLink]=id;
     }
 
     function getTokenIDFromURI(string memory URI) public view returns (uint256) {
         return tokenIDFromURI[URI];
     }
     function setTokenIDFromURI(string memory URI, uint256 id) internal    {
-        require(tokenIDFromURI[URI]==0,"This URI already has existing NFTurtle linked") // check if not used previously
+        require(tokenIDFromURI[URI]==0,"This URI already has existing NFTurtle linked"); // check if not used previously
 		require(_isApprovedOrOwner(_msgSender(), id), "ERC721: caller is not owner nor approved");
-        TokenIDFromURI[URI]=id;
+        tokenIDFromURI[URI]=id;
     }
 
     constructor () ERC721("NFTurtle TEST1", "NFTurtleT1") {
 	}
 
-    function withdraw() public onlyOwner {
+    function withdraw() external onlyOwner returns (bool,bytes memory data)  {
         uint balance = address(this).balance;
-        msg.sender.call{value: balance}("");
+        return msg.sender.call{value: balance}("");
     }
 
     /**
      * Set some NFTurtles aside
      */
-    function issueNFTurtle(string ipfs) public onlyOwner {        
+    function issueNFTurtle(string memory ipfs) public onlyOwner {        
         uint supply = totalSupply();
         _safeMint(msg.sender, supply);
         supply = totalSupply();
-		setTokenUri(ipfs);
+		_setTokenURI(supply,ipfs); //note that public TokenURI contains BaseURI too
     }
 
     function setBaseURI(string memory baseURI) public onlyOwner {
@@ -2247,11 +2282,12 @@ contract NFTurtle is ERC721, Ownable {
         uint mintIndex = totalSupply();
         _safeMint(msg.sender, mintIndex);
 		mintIndex = totalSupply();
-		NFTurtleOrigPhoto[mintIndex]=newPhoto;
+		NFTurtleOrigPhoto[mintIndex]=realPhotoIPFS;
 		//set links
         setTokenIDFromURI(realPhotoIPFS, mintIndex);
         setTokenIDFromURI(json,	mintIndex);
 		_setTokenURI(mintIndex,json);
     }
+
 
 }
