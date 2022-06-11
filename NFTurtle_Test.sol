@@ -2164,8 +2164,11 @@ contract NFTurtle is ERC721, Ownable {
     function getNFTurtleOrigPhoto(uint256 id) external view returns (string memory) {
         return NFTurtleOrigPhoto[id];
     }
+	// Original photo can be assigned later.
     function setNFTurtleOrigPhoto(uint256 id, string memory newLink) external onlyOwner   {
-        NFTurtleOrigPhoto[id]=newPhoto;
+        NFTurtleOrigPhoto[id]=newLink;
+		require(tokenIDFromURI[newLink]==0,"This URI already has existing NFTurtle linked") // check if not used previously
+		TokenIDFromURI[newLink]=id;
     }
 
     function getTokenIDFromURI(string memory URI) public view returns (uint256) {
@@ -2177,26 +2180,22 @@ contract NFTurtle is ERC721, Ownable {
         TokenIDFromURI[URI]=id;
     }
 
-    //constructor(string memory name, string memory symbol, uint256 maxNftSupply, uint256 saleStart) ERC721(name, symbol) {
-    //    MAX_NFTT = maxNftSupply;
-    //    REVEAL_TIMESTAMP = saleStart + (86400 * 2);
-    //}
-
     constructor () ERC721("NFTurtle TEST1", "NFTurtleT1") {
 	}
 
     function withdraw() public onlyOwner {
         uint balance = address(this).balance;
-        msg.sender.transfer(balance);
+        msg.sender.call{value: balance}("");
     }
 
     /**
      * Set some NFTurtles aside
      */
-    function reserveNFTT(string json) public onlyOwner {        
+    function issueNFTurtle(string ipfs) public onlyOwner {        
         uint supply = totalSupply();
         _safeMint(msg.sender, supply);
-		
+        supply = totalSupply();
+		setTokenUri(ipfs);
     }
 
     function setBaseURI(string memory baseURI) public onlyOwner {
@@ -2211,45 +2210,48 @@ contract NFTurtle is ERC721, Ownable {
     }
 
     /**
-    * Mints a NFTurtle the standard way
+    * Mints a NFTurtle the standard way (ID of token as a file under baseURI)
     */
-    function mintNFTurtle(uint numberOfTokens) public payable {
+    function mintNFTurtle() public payable {
         require(saleIsActive, "Sale must be active to mint NFTurtle");
-        require(numberOfTokens <= maxItemsPurchase, "Can only mint limited tokens at a time");
-        require(totalSupply().add(numberOfTokens) <= MAX_NFTT, "Purchase would exceed max supply of turtles");
-        require(initPrice.mul(numberOfTokens) <= msg.value, "Ether value sent is not sufficient");
+        //require(numberOfTokens <= maxItemsPurchase, "Can only mint limited tokens at a time");
+        //require(totalSupply().add(numberOfTokens) <= MAX_NFTT, "Purchase would exceed max supply of turtles");
+        require(totalSupply() < MAX_NFTT, "Purchase would exceed max supply of turtles");
+        //require(initPrice.mul(numberOfTokens) <= msg.value, "Ether value sent is not sufficient");
+        require(initPrice <= msg.value, "Ether value sent is not sufficient");
         
-        for(uint i = 0; i < numberOfTokens; i++) {
+        //for(uint i = 0; i < numberOfTokens; i++) {
             uint mintIndex = totalSupply();
-            if (totalSupply() < MAX_NFTT) {
+        //    if (totalSupply() < MAX_NFTT) {
                 _safeMint(msg.sender, mintIndex);
-            }
-        }
+		mintIndex = totalSupply();
+        setTokenIDFromURI(tokenURI(mintIndex),	mintIndex);
+        //    }
+        //}
     }
 
     /**
-    * Mints a NFTurtle from issuer invitation
+    * Mints a NFTurtle from issuer invitation with defined IPFS
     */
-    function mintSpecialNFTurtle(string memory realPhoto, string memory json, uint8 discountInPercent, bytes memory _signature) external payable {
-        require(saleIsActive, "Sale must be active to mint NFTurtle");
-        require(numberOfTokens <= maxItemsPurchase, "Can only mint limited tokens at a time");
+    function claimSpecialNFTurtle(string memory realPhotoIPFS, string memory json, uint8 discountInPercent, bytes memory _signature) external payable {
+		//verify signature 
+        address wallet = _msgSender();
+        address signerOwner = ECDSA.recover(keccak256(abi.encode(wallet, realPhotoIPFS, json, discountInPercent)), _signature);
+        require(signerOwner == owner(), "Invalid signature");        
+		//require(saleIsActive, "Sale must be active to mint NFTurtle");
+        //require(numberOfTokens <= maxItemsPurchase, "Can only mint limited tokens at a time");
         require(totalSupply() < MAX_NFTT, "Purchase would exceed max supply of turtles");
         require(initPrice.mul(100-discountInPercent).div(100) <= msg.value, "Ether value sent is not sufficient");
-        
-		//verify signature here
-        address wallet = _msgSender();
-        address signerOwner = signatureWallet(wallet, realPhoto, json, discountInPercent, _signature);
-        require(signerOwner == owner(), "Invalid signature");
+
 		//mint one NFT
         uint mintIndex = totalSupply();
         _safeMint(msg.sender, mintIndex);
 		mintIndex = totalSupply();
 		NFTurtleOrigPhoto[mintIndex]=newPhoto;
 		//set links
-        setTokenIDFromURI(realPhoto, mintIndex);
+        setTokenIDFromURI(realPhotoIPFS, mintIndex);
         setTokenIDFromURI(json,	mintIndex);
 		_setTokenURI(mintIndex,json);
     }
-
 
 }
